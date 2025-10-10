@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduHelper - AI Question Solver</title>
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    header {
+      background: rgba(255, 255, 255, 0.95);
+      color: #667eea;
+      text-align: center;
+      padding: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 30px;
+    }
+    
+    nav {
+      display: flex;
+      justify-content: space-around;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 15px;
+      margin-bottom: 25px;
+      gap: 10px;
+    }
+    
+    nav button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      flex: 1;
+    }
+    
+    nav button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    section {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    section.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+    
+    input[type="text"], input[type="email"], input[type="password"], textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border 0.3s ease;
+    }
+    
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    textarea {
+      height: 120px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    
+    button.primary, button.send {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 10px;
+      transition: all 0.3s ease;
+    }
+    
+    button.primary:hover, button.send:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .ai-response {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      min-height: 60px;
+      position: relative;
+    }
+    
+    .ai-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+      margin-right: 15px;
+      vertical-align: middle;
+    }
+    
+    .typing-indicator {
+      display: inline-block;
+      margin-left: 10px;
+    }
+    
+    .typing-indicator span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #667eea;
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+    
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+    
+    .subjects h3 {
+      color: #667eea;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    
+    .subjects ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    
+    .subjects li {
+      padding: 8px 15px;
+      margin: 5px 0;
+      background: #f8f9fa;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .subjects li:hover {
+      background: #667eea;
+      color: white;
+      transform: translateX(5px);
+    }
+  </style>
+</head>
+<body>
+  <header>🎓 EduHelper – AI Question Solver</header>
+
+  <div class="container">
+    <nav>
+      <button onclick="showSection('login')">Login</button>
+      <button onclick="showSection('signup')">Sign Up</button>
+      <button onclick="showSection('solver')">AI Solver</button>
+      <button onclick="showSection('subjects')">Subjects</button>
+    </nav>
+
+    <section id="login" class="active">
+      <h2>👤 Login</h2>
+      <input id="loginEmail" type="email" placeholder="Email">
+      <input id="loginPass" type="password" placeholder="Password">
+      <button class="primary" onclick="login()">Login</button>
+    </section>
+
+    <section id="signup">
+      <h2>✨ Create Account</h2>
+      <input id="signupEmail" type="email" placeholder="Email">
+      <input id="signupPass" type="password" placeholder="Password">
+      <button class="primary" onclick="signup()">Sign Up</button>
+    </section>
+
+    <section id="solver">
+      <h2>🤖 Ask Your AI Assistant</h2>
+      <textarea id="questionInput" placeholder="Type your question here... (e.g., What is photosynthesis? or Solve: 2x + 5 = 15)"></textarea>
+      <button class="send" onclick="askQuestion()">Send Question</button>
+      
+      <div id="answerBox" class="ai-response" style="display: none;">
+        <span class="ai-avatar">AI</span>
+        <span id="answer"></span>
+        <div id="typing" class="typing-indicator" style="display: none;">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="subjects" class="subjects">
+      <h2>📚 Available Subjects (Class 1–12)</h2>
+
+      <h3>Class 1–5 (Primary)</h3>
+      <ul>
+        <li>📝 English</li>
+        <li>🔤 Hindi</li>
+        <li>🔢 Mathematics</li>
+        <li>🌍 Environmental Studies (EVS)</li>
+        <li>💻 Computer Basics</li>
+        <li>🎨 Art & Craft</li>
+        <li>⚽ Physical Education</li>
+        <li>🌟 General Knowledge</li>
+      </ul>
+
+      <h3>Class 6–8 (Middle)</h3>
+      <ul>
+        <li>📝 English</li>
+        <li>🔤 Hindi / Sanskrit</li>
+        <li>🔢 Mathematics</li>
+        <li>🔬 Science</li>
+        <li>🌍 Social Science</li>
+        <li>💻 Computer Science</li>
+        <li>🎵 Art, Music & PE</li>
+      </ul>
+
+      <h3>Class 9–10 (Secondary)</h3>
+      <ul>
+        <li>📝 English</li>
+        <li>🔤 Hindi / Sanskrit / French</li>
+        <li>🔢 Mathematics</li>
+        <li>🔬 Science (Physics, Chemistry, Biology)</li>
+        <li>🌍 Social Science</li>
+        <li>💻 Computer Applications / IT</li>
+      </ul>
+
+      <h3>Class 11–12 (Senior Secondary)</h3>
+      <ul>
+        <li><b>🔬 Science:</b> Physics, Chemistry, Math/Biology, CS</li>
+        <li><b>💼 Commerce:</b> Accountancy, Business, Economics</li>
+        <li><b>📖 Humanities:</b> History, Political Science, Psychology</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    let authToken = localStorage.getItem('authToken') || '';
+
+    function showSection(id) {
+      document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    async function signup() {
+      const email = document.getElementById("signupEmail").value;
+      const password = document.getElementById("signupPass").value;
+      
+      if (!email || !password) {
+        alert("Please enter email and password");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          authToken = data.token;
+          localStorage.setItem('authToken', authToken);
+          alert("✅ Account created successfully! You can now use the AI solver.");
+          showSection('solver');
+        } else {
+          alert("❌ Signup failed: " + (data.error || "Unknown error"));
+        }
+      } catch (e) {
+        alert("Error: " + e.message);
+      }
+    }
+
+    async function login() {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPass").value;
+      
+      if (!email || !password) {
+        alert("Please enter email and password");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          authToken = data.token;
+          localStorage.setItem('authToken', authToken);
+          alert("✅ Login successful! Welcome back!");
+          showSection('solver');
+        } else {
+          alert("❌ Login failed: " + (data.error || "Invalid credentials"));
+        }
+      } catch (e) {
+        alert("Error: " + e.message);
+      }
+    }
+
+    function typeWriter(text, element, speed = 30) {
+      let i = 0;
+      element.innerHTML = '';
+      
+      function type() {
+        if (i < text.length) {
+          element.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(type, speed);
+        }
+      }
+      type();
+    }
+
+    async function askQuestion() {
+      if (!authToken) {
+        alert("⚠️ Please login first to use the AI solver!");
+        showSection('login');
+        return;
+      }
+
+      const q = document.getElementById("questionInput").value;
+      if (!q) {
+        alert("Please enter a question");
+        return;
+      }
+
+      const answerBox = document.getElementById("answerBox");
+      const answerEl = document.getElementById("answer");
+      const typingEl = document.getElementById("typing");
+      
+      answerBox.style.display = "block";
+      answerEl.innerHTML = "";
+      typingEl.style.display = "inline-block";
+
+      try {
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ 
+            prompt: q,
+            classLevel: "10",
+            subject: "General"
+          })
+        });
+        const data = await res.json();
+        
+        typingEl.style.display = "none";
+        
+        if (res.ok) {
+          typeWriter(data.answer || "No answer received.", answerEl);
+        } else {
+          answerEl.innerHTML = "❌ Error: " + (data.error || "Failed to get answer");
+        }
+      } catch (e) {
+        typingEl.style.display = "none";
+        answerEl.innerHTML = "❌ Error: " + e.message;
+      }
+    }
+  </script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker registered:', reg))
+          .catch(err => console.error('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
